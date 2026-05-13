@@ -1,55 +1,35 @@
-import 'package:flutter/material.dart';
-import '../widgets/contact_list.dart';
-import '../widgets/chat_area.dart';
+name: Build APK
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+on:
+  push:
+    branches: [ master ]
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
 
-class _HomeScreenState extends State<HomeScreen> {
-  int contatoAtual = 0;
-  bool mostrandoChat = false;
+      - name: Get packages
+        run: flutter pub get
 
-  final List<Map<String, dynamic>> contatos = [
-    {"id": "Maria", "nome": "Maria Silva", "online": true, "av": "MS"},
-    {"id": "Joao", "nome": "João Pedro", "online": false, "av": "JP"},
-    {"id": "Ana", "nome": "Ana Carla", "online": true, "av": "AC"},
-    {"id": "Lucas", "nome": "Lucas Mendes", "online": false, "av": "LM"},
-    {"id": "Bia", "nome": "Beatriz Lima", "online": true, "av": "BL"},
-  ];
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
 
-  @override
-  Widget build(BuildContext context) {
-    final bool isMobile = MediaQuery.of(context).size.width < 600;
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
 
-    if (isMobile) {
-      return Scaffold(
-        body: mostrandoChat
-            ? Stack(
-                children: [
-                  ChatArea(contato: contatos[contatoAtual]),
-                  Positioned(
-                    top: 10,
-                    left: 8,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          setState(() => mostrandoChat = false);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : ContactList(
-                contatos: contatos,
-                contatoAtual: contatoAtual,
-                onContatoSelecionado: (index) {
-                  setState(() {
-                    contatoAtual = index;
-                    mostrandoChat = true;
-                  });
