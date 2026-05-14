@@ -1,4 +1,4 @@
-name: Build APK
+name: Flutter Build APK
 
 on:
   push:
@@ -13,25 +13,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.3'     # mais estável que a 3.24
+          flutter-version: '3.22.3'
           channel: 'stable'
           cache: true
 
-      - name: Get Flutter dependencies
+      - name: Install dependencies
         run: flutter pub get
 
       - name: Build Debug APK
-        run: flutter build apk --debug --no-tree-shake-icons
+        run: flutter build apk --debug --no-tree-shake-icons --verbose
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: talks-app-debug
+          name: talks-app-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
